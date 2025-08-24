@@ -1,0 +1,27 @@
+/* Configuração base para o mapa ocupar a tela inteira */
+html, body, #map {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    /* Garante que o mapa fique atrás de todos os controles do Leaflet */
+    z-index: 0;
+}
+
+/* Estilos para o painel de controle colapsável */
+#controlPanel {
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+#panelHeader {
+    cursor: pointer;
+}
+
+#panelHeader .collapse-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Gira o ícone da setinha quando o painel está recolhido */
+#panelHeader.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
