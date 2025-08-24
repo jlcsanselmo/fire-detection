@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Detecção de Queimadas - INPE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="map"></div>
+
+    <div class="leaflet-top leaflet-left" style="margin-top: 10px; margin-left: 10px;">
+        <div class="leaflet-control leaflet-bar card" style="width: 250px;">
+            <div class="card-body">
+                <h6 class="card-title">Focos de Queimada</h6>
+                
+                <div class="mb-2">
+                    <label for="seletorPeriodo" class="form-label small">Selecione o Período:</label>
+                    <select class="form-select form-select-sm" id="seletorPeriodo">
+                        <option value="10min">Tempo Real (10 min)</option>
+                        <option value="mensal">Mensal</option>
+                        <option value="anual">Anual</option>
+                    </select>
+                </div>
+
+                <div id="containerMensal" class="mb-2" style="display: none;">
+                    <label for="seletorArquivoMensal" class="form-label small">Mês:</label>
+                    <select class="form-select form-select-sm" id="seletorArquivoMensal"></select>
+                </div>
+
+                <div id="containerAnual" class="mb-2" style="display: none;">
+                    <label for="seletorArquivoAnual" class="form-label small">Ano:</label>
+                    <select class="form-select form-select-sm" id="seletorArquivoAnual"></select>
+                </div>
+
+                <button class="btn btn-primary w-100" id="btnCarregarDados">Carregar Dados</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
