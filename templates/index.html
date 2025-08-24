@@ -2,47 +2,67 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Detecção de Queimadas - INPE</title>
+    <title>Análise de Queimadas e Cicatrizes</title>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div id="map"></div>
 
-    <div class="leaflet-top leaflet-left" style="margin-top: 10px; margin-left: 10px;">
-        <div class="leaflet-control leaflet-bar card" style="width: 250px;">
-            <div class="card-body">
-                <h6 class="card-title">Focos de Queimada</h6>
-                
-                <div class="mb-2">
-                    <label for="seletorPeriodo" class="form-label small">Selecione o Período:</label>
-                    <select class="form-select form-select-sm" id="seletorPeriodo">
-                        <option value="10min">Tempo Real (10 min)</option>
-                        <option value="mensal">Mensal</option>
-                        <option value="anual">Anual</option>
-                    </select>
+    <div class="leaflet-bottom leaflet-left">
+        <div class="leaflet-control card" id="controlPanel" style="width: 280px; margin-bottom: 20px; margin-left: 10px;">
+            <div class="card-header d-flex justify-content-between align-items-center" id="panelHeader" data-bs-toggle="collapse" data-bs-target="#panelBody" style="cursor: pointer;">
+                <h6 class="mb-0">Painel de Controle</h6>
+                <span class="collapse-icon">▼</span>
+            </div>
+            <div class="collapse show" id="panelBody">
+                <div class="card-body">
+                    <h6 class="card-title">Focos de Queimada (INPE)</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Período:</label>
+                        <select class="form-select form-select-sm" id="seletorPeriodo">
+                            <option value="10min">Tempo Real (10 min)</option>
+                            <option value="mensal">Mensal</option>
+                            <option value="anual">Anual</option>
+                        </select>
+                    </div>
+                    <div id="containerMensal" class="mb-2" style="display: none;"><select class="form-select form-select-sm" id="seletorArquivoMensal"></select></div>
+                    <div id="containerAnual" class="mb-2" style="display: none;"><select class="form-select form-select-sm" id="seletorArquivoAnual"></select></div>
+                    <button class="btn btn-primary w-100" id="btnCarregarDados">Carregar Focos</button>
+                    <hr>
+                    <h6 class="card-title">Análise de Cicatriz (GEE)</h6>
+                    <p class="small text-muted">1. Selecione período Mensal/Anual.<br>2. Desenhe um polígono no mapa.<br>3. Clique em analisar.</p>
+                    <button class="btn btn-success w-100" id="btnAnalisarCicatriz" disabled>Analisar Cicatriz</button>
                 </div>
-
-                <div id="containerMensal" class="mb-2" style="display: none;">
-                    <label for="seletorArquivoMensal" class="form-label small">Mês:</label>
-                    <select class="form-select form-select-sm" id="seletorArquivoMensal"></select>
-                </div>
-
-                <div id="containerAnual" class="mb-2" style="display: none;">
-                    <label for="seletorArquivoAnual" class="form-label small">Ano:</label>
-                    <select class="form-select form-select-sm" id="seletorArquivoAnual"></select>
-                </div>
-
-                <button class="btn btn-primary w-100" id="btnCarregarDados">Carregar Dados</button>
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="resultadoModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Resultado da Análise de Cicatriz</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>A área total da cicatriz de queimada, com severidade moderada a alta (dNBR > 0.27), é de:</p>
+            <h3 class="text-center"><span id="resultadoArea" class="badge bg-danger"></span></h3>
+            <p class="mt-3 small text-muted">Uma camada visual (raster) e o contorno exato (vetor) da cicatriz foram adicionados ao mapa.</p>
+          </div>
+        </div>
+      </div>
+    </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
