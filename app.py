@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 
-# Desativa os avisos de segurança para a conexão com o INPE
 
 app = Flask(__name__)
 
@@ -60,7 +59,7 @@ def proxy_queimadas():
             target_url = f"{base_url}mensal/Brasil/{arquivo}"
         elif periodo == 'anual':
             if not arquivo: raise ValueError("Nome do arquivo anual não fornecido.")
-            target_url = f"{base_url}anual/{arquivo}"
+            target_url = f"{base_url}anual/Brasil_todos_sats{arquivo}"
         else:
             return "Período inválido.", 400
 
