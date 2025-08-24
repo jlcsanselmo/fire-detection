@@ -15,7 +15,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnAnalisarCicatriz = document.getElementById('btnAnalisarCicatriz');
     const resultadoArea = document.getElementById('resultadoArea');
     const resultadoModal = new bootstrap.Modal(document.getElementById('resultadoModal'));
-     L.DomEvent.disableClickPropagation(controlPanel);
+
+    // Se tiver o painel, protege os cliques
+    const controlPanel = document.getElementById('controlPanel');
+    if (controlPanel) {
+        L.DomEvent.disableClickPropagation(controlPanel);
+    }
 
     // Inicialização do Mapa
     const map = L.map('map', { center: [-15.78, -47.93], zoom: 4 });
@@ -123,72 +128,70 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Função para analisar a CICATRIZ (GEE)
     async function analisarCicatriz() {
-    if (!drawnPolygon) {
-        alert("Por favor, desenhe um polígono no mapa primeiro.");
-        return;
-    }
-    const periodo = seletorPeriodo.value;
-    if (periodo === '10min') {
-        alert("A análise de cicatriz funciona com períodos históricos. Selecione um Mês ou Ano.");
-        return;
-    }
-    
-    const arquivo = periodo === 'mensal' ? seletorArquivoMensal.value : seletorArquivoAnual.value;
-    map.getContainer().style.cursor = 'wait';
-    btnAnalisarCicatriz.disabled = true;
-    btnAnalisarCicatriz.innerHTML = 'Analisando...';
-
-    if (cicatrizLayer) map.removeLayer(cicatrizLayer);
-    if (cicatrizVectorLayer) map.removeLayer(cicatrizVectorLayer);
-
-    try {
-        const response = await fetch('/analisar-cicatrizes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                geometry: drawnPolygon.toGeoJSON().geometry,
-                arquivo: arquivo
-            })
-        });
-
-        // ### TRATAMENTO DE ERRO APRIMORADO ###
-        if (!response.ok) {
-            // Se o servidor retornou um erro, tenta ler a mensagem de erro específica
-            if (response.status === 404 || response.status === 503) {
-                const errorData = await response.json();
-                throw new Error(errorData.error); // Lança o erro com a mensagem do servidor
-            }
-            throw new Error("Ocorreu um erro desconhecido no servidor.");
+        if (!drawnPolygon) {
+            alert("Por favor, desenhe um polígono no mapa primeiro.");
+            return;
+        }
+        const periodo = seletorPeriodo.value;
+        if (periodo === '10min') {
+            alert("A análise de cicatriz funciona com períodos históricos. Selecione um Mês ou Ano.");
+            return;
         }
         
-        const resultado = await response.json();
-        
-        if(resultado.area_ha > 0) {
-            cicatrizLayer = L.tileLayer(resultado.tile_url, { opacity: 0.75 });
-            map.addLayer(cicatrizLayer);
+        const arquivo = periodo === 'mensal' ? seletorArquivoMensal.value : seletorArquivoAnual.value;
+        map.getContainer().style.cursor = 'wait';
+        btnAnalisarCicatriz.disabled = true;
+        btnAnalisarCicatriz.innerHTML = 'Analisando...';
 
-            if (resultado.cicatriz_geojson) {
-                cicatrizVectorLayer = L.geoJSON(resultado.cicatriz_geojson, {
-                    style: { color: "#ff0000", weight: 2, opacity: 1, fillOpacity: 0.1 }
-                }).bindPopup(`Área da Cicatriz: ${resultado.area_ha.toLocaleString('pt-BR')} ha`);
-                map.addLayer(cicatrizVectorLayer);
+        if (cicatrizLayer) map.removeLayer(cicatrizLayer);
+        if (cicatrizVectorLayer) map.removeLayer(cicatrizVectorLayer);
+
+        try {
+            const response = await fetch('/analisar-cicatrizes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    geometry: drawnPolygon.toGeoJSON().geometry,
+                    arquivo: arquivo
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 404 || response.status === 503) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error);
+                }
+                throw new Error("Ocorreu um erro desconhecido no servidor.");
             }
             
-            resultadoArea.textContent = `${resultado.area_ha.toLocaleString('pt-BR')} hectares`;
-            resultadoModal.show();
-        } else {
-            alert("Nenhuma cicatriz de queimada com severidade moderada/alta foi encontrada na área e período selecionados.");
-        }
+            const resultado = await response.json();
+            
+            if(resultado.area_ha > 0) {
+                cicatrizLayer = L.tileLayer(resultado.tile_url, { opacity: 0.75 });
+                map.addLayer(cicatrizLayer);
 
-    } catch (error) {
-        console.error("Erro ao analisar cicatriz:", error);
-        alert(error.message); // Exibe a mensagem de erro específica para o usuário
-    } finally {
-        map.getContainer().style.cursor = '';
-        btnAnalisarCicatriz.disabled = false;
-        btnAnalisarCicatriz.innerHTML = 'Analisar Cicatriz';
+                if (resultado.cicatriz_geojson) {
+                    cicatrizVectorLayer = L.geoJSON(resultado.cicatriz_geojson, {
+                        style: { color: "#ff0000", weight: 2, opacity: 1, fillOpacity: 0.1 }
+                    }).bindPopup(`Área da Cicatriz: ${resultado.area_ha.toLocaleString('pt-BR')} ha`);
+                    map.addLayer(cicatrizVectorLayer);
+                }
+                
+                resultadoArea.textContent = `${resultado.area_ha.toLocaleString('pt-BR')} hectares`;
+                resultadoModal.show();
+            } else {
+                alert("Nenhuma cicatriz de queimada com severidade moderada/alta foi encontrada na área e período selecionados.");
+            }
+
+        } catch (error) {
+            console.error("Erro ao analisar cicatriz:", error);
+            alert(error.message);
+        } finally {
+            map.getContainer().style.cursor = '';
+            btnAnalisarCicatriz.disabled = false;
+            btnAnalisarCicatriz.innerHTML = 'Analisar Cicatriz';
+        }
     }
-}
     
     // Preenche os seletores (mensal e anual)
     async function popularSeletores() {
@@ -225,7 +228,9 @@ document.addEventListener("DOMContentLoaded", function () {
         carregarFocosDeQueimada(periodo, arquivo);
     });
 
-    // --- INICIALIZAÇÃO DA PÁGINA ---
+    // Ação do botão "Analisar Cicatriz"
+    btnAnalisarCicatriz.addEventListener('click', analisarCicatriz);
+
+    // Popular seletores no carregamento inicial
     popularSeletores();
-    carregarFocosDeQueimada('10min');
 });
